@@ -20,7 +20,7 @@
 </head>
 <body>
 
-<code><span id="load_date">{date}</span></code>
+<code><span id="load_date">${code.}</span></code>
 <div class="code_block">
     <pre id="code_snippet"><code>{code_snippet}</code></pre>
 </div>

@@ -9,6 +9,7 @@ sourceCompatibility = 11
 
 repositories {
     mavenCentral()
+    google()
 }
 
 sourceSets.main.resources.srcDirs = ["src/resources"]
@@ -16,5 +17,7 @@ sourceSets.main.resources.srcDirs = ["src/resources"]
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.json:json:20201115'
+    implementation 'org.springframework.boot:spring-boot-starter-freemarker'
     compile("org.springframework.boot:spring-boot-starter-web")
 }
