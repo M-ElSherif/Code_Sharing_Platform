@@ -28,7 +28,7 @@ import javax.management.MXBean;
 @RestController
 public class WebController {
 
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
     private LocalDateTime localDateTime = LocalDateTime.now();
 
     private static String codeSnippet = "placeholder";
@@ -68,6 +68,28 @@ public class WebController {
                 .body(out.getBuffer().toString());
     }
 
+    @GetMapping("/code/latest")
+    public ResponseEntity<String> getWebCodeLatest() {
+        HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.setContentType(MediaType.TEXT_HTML);
+
+        List<Code> codeList = this.storageConfig.getCodeLatest();
+
+        Map root = new HashMap();
+        root.put("codeList", codeList);
+        Template template = cfg.getTemplate("codeDisplayLatest.ftlh");
+        StringWriter out = new StringWriter();
+
+        try {
+            template.process(root, out);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return ResponseEntity.ok()
+                .headers(responseHeaders)
+                .body(out.getBuffer().toString());
+    }
+
     @GetMapping("/code/new")
     public ResponseEntity<String> submitNewCode() {
         HttpHeaders responseHeaders = new HttpHeaders();
@@ -86,10 +108,6 @@ public class WebController {
                 .body(out.getBuffer().toString());
     }
 
-    @GetMapping("/code/latest")
-    public ResponseEntity<String> getWebCodeLatest() {
-        return null;
-    }
 
     @GetMapping("/api/code/latest")
     public ResponseEntity<List<Code>> getCodeLatest() {
@@ -108,15 +126,13 @@ public class WebController {
     }
 
     @PostMapping(value = "/api/code/new", consumes = "application/json")
-    public ResponseEntity<JSONObject> addCodeSnippet(@RequestBody Code code) {
+    public ResponseEntity<String> addCodeSnippet(@RequestBody Code code) {
         code.setDate(LocalDateTime.now());
         this.storageConfig.addCode(code);
 
-        JSONObject id = new JSONObject();
-        id.put("id", code.getId());
-
         return ResponseEntity.ok()
-                .body(id);
+                .body("{ \"id\": \"" + this.storageConfig.getSize() + "\"}");
+
     }
 
 }

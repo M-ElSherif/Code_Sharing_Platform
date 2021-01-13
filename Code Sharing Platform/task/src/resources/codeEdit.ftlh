@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="./codeEdit.css">
 
     <style>
-        textarea{
+        textarea {
 
         }
     </style>
