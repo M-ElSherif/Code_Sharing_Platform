@@ -1,19 +1,30 @@
 package platform;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
 
+import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
+@Entity
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Code {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @Column(name="CODEID")
+    @JsonIgnore
+    private int id;
+
+    @Column(nullable = false)
     private String code;
+
+    @Column(nullable = false)
     private LocalDateTime date;
+
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-//    private int id;
 
     public Code() {
     }
@@ -32,20 +43,20 @@ public class Code {
     }
 
     public String getDate() {
-        return date.format(FORMATTER);
+        return this.date.format(FORMATTER);
     }
 
     public void setDate(LocalDateTime date) {
         this.date = date;
     }
 
-//    public int getId() {
-//        return id;
-//    }
-//
-//    public void setId(int id) {
-//        this.id = id;
-//    }
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int codeID) {
+        this.id = codeID;
+    }
 
     @Override
     public boolean equals(Object o) {

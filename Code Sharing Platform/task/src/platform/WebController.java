@@ -1,29 +1,17 @@
 package platform;
 
-import freemarker.template.Configuration;
 import freemarker.template.Template;
-import freemarker.template.TemplateExceptionHandler;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.*;
-import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.json.*;
-import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
-
-import javax.management.MXBean;
+import java.util.*;
 
 @RestController
 public class WebController {
@@ -32,14 +20,17 @@ public class WebController {
     private LocalDateTime localDateTime = LocalDateTime.now();
 
     private static String codeSnippet = "placeholder";
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
 
     private ConfigManager cfg;
     private CodeStorageConfig storageConfig;
+    private CodeService codeService;
 
     @Autowired
-    public WebController(ConfigManager cfg, CodeStorageConfig storageConfig) {
+    public WebController(ConfigManager cfg, CodeStorageConfig storageConfig, CodeService codeService) {
         this.cfg = cfg;
         this.storageConfig = storageConfig;
+        this.codeService = codeService;
     }
 
     public static void setCodeSnippet(String newCodeSnippet) {
@@ -51,10 +42,11 @@ public class WebController {
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.setContentType(MediaType.TEXT_HTML);
 
-        Code code = this.storageConfig.getCode(N);
+//        Code code = this.storageConfig.getCode(N);
+        Optional<Code> code = this.codeService.getCodeById(N);
 
         Map root = new HashMap();
-        root.put("code", code);
+        root.put("code", code.get());
         Template template = cfg.getTemplate("codeDisplay.ftlh");
         StringWriter out = new StringWriter();
 
@@ -73,7 +65,8 @@ public class WebController {
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.setContentType(MediaType.TEXT_HTML);
 
-        List<Code> codeList = this.storageConfig.getCodeLatest();
+//        List<Code> codeList = this.storageConfig.getCodeLatest();
+        List<Code> codeList = this.codeService.getLatestCode();
 
         Map root = new HashMap();
         root.put("codeList", codeList);
@@ -109,29 +102,32 @@ public class WebController {
     }
 
 
-    @GetMapping("/api/code/latest")
+    @GetMapping(value="/api/code/latest", produces = "application/json")
     public ResponseEntity<List<Code>> getCodeLatest() {
-        List<Code> codeSnippets = this.storageConfig.getCodeLatest();
+//        List<Code> codeSnippets = this.storageConfig.getCodeLatest();
+        List<Code> codeList = this.codeService.getLatestCode();
 
         return ResponseEntity.ok()
-                .body(codeSnippets);
+                .body(codeList);
     }
 
     @GetMapping(value = "/api/code/{N}", produces = "application/json")
     public ResponseEntity<Code> getCodeSnippet(@PathVariable int N) {
-        Code code = this.storageConfig.getCode(N);
+//        Code code = this.storageConfig.getCode(N);
+        Optional<Code> code = this.codeService.getCodeById(N);
 
         return ResponseEntity.ok()
-                .body(code);
+                .body(code.get());
     }
 
     @PostMapping(value = "/api/code/new", consumes = "application/json")
     public ResponseEntity<String> addCodeSnippet(@RequestBody Code code) {
         code.setDate(LocalDateTime.now());
-        this.storageConfig.addCode(code);
+//        this.storageConfig.addCode(code);
+        this.codeService.addCode(code);
 
         return ResponseEntity.ok()
-                .body("{ \"id\": \"" + this.storageConfig.getSize() + "\"}");
+                .body("{ \"id\": \"" + code.getId() + "\"}");
 
     }
 
