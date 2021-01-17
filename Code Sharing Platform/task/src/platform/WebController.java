@@ -3,6 +3,7 @@ package platform;
 import freemarker.template.Template;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,9 +27,8 @@ public class WebController {
     private CodeService codeService;
 
     @Autowired
-    public WebController(ConfigManager cfg, CodeStorageConfig storageConfig, CodeService codeService) {
+    public WebController(ConfigManager cfg, CodeService codeService) {
         this.cfg = cfg;
-        this.storageConfig = storageConfig;
         this.codeService = codeService;
     }
 
@@ -36,12 +36,12 @@ public class WebController {
         codeSnippet = newCodeSnippet;
     }
 
-    @GetMapping(value = "/code/{N}")
-    public ResponseEntity<String> getWebCode(@PathVariable int N) {
+    @GetMapping(value = "/code/{UUID}")
+    public ResponseEntity<String> getWebCode(@PathVariable UUID UUID) {
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.setContentType(MediaType.TEXT_HTML);
 
-        Optional<Code> code = this.codeService.getCodeById(N);
+        Optional<Code> code = this.codeService.getCodeById(UUID);
 
         Map root = new HashMap();
         root.put("code", code.get());
@@ -98,31 +98,27 @@ public class WebController {
                 .body(out.getBuffer().toString());
     }
 
-
     @GetMapping(value = "/api/code/latest", produces = "application/json")
     public ResponseEntity<List<Code>> getCodeLatest() {
-        List<Code> codeList = this.codeService.getLatestCode();
+        List<Code> codeList = new ArrayList<>();
+        codeList = this.codeService.getLatestCode();
 
         return ResponseEntity.ok()
                 .body(codeList);
     }
 
-    @GetMapping(value = "/api/code/{N}", produces = "application/json")
-    public ResponseEntity<Code> getCodeSnippet(@PathVariable int N) {
-        Optional<Code> code = this.codeService.getCodeById(N);
+    @GetMapping(value = "/api/code/{UUID}", produces = "application/json")
+    public ResponseEntity<Code> getCodeSnippet(@PathVariable UUID UUID) {
+        Code code = this.codeService.getCodeById(UUID).get();
 
-        return ResponseEntity.ok()
-                .body(code.get());
+        this.codeService.decrementCodeView(code);
+
+        if (this.codeService.isCodeUnRestricted(code)) {
+            return ResponseEntity.ok()
+                    .body(code);
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
-
-//    @PostMapping(value = "/api/code/new", consumes = "application/json")
-//    public ResponseEntity<String> addCodeSnippet(@RequestBody Code code) {
-//        code.setDate(LocalDateTime.now());
-//        this.codeService.addCode(code);
-//
-//        return ResponseEntity.ok()
-//                .body("{ \"id\": \"" + code.getId() + "\"}");
-//    }
 
     @PostMapping(value = "/api/code/new", consumes = "application/json")
     public ResponseEntity<String> addCodeSnippet(@RequestBody Code code) {

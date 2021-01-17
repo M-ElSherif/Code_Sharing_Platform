@@ -29,7 +29,7 @@ public class Code {
     private int views;
 
     @Column(nullable = false)
-    private int time;
+    private long time;
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
 
@@ -39,7 +39,6 @@ public class Code {
     public Code(String code, LocalDateTime date) {
         this.code = code;
         this.date = LocalDateTime.now().withNano(0);
-        this.uuid = UUID.randomUUID();
     }
 
     public String getCode() {
@@ -74,11 +73,11 @@ public class Code {
         this.views = views;
     }
 
-    public int getTime() {
+    public long getTime() {
         return time;
     }
 
-    public void setTime(int time) {
+    public void setTime(long time) {
         this.time = time;
     }
 

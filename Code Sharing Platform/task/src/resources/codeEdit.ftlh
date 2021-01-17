@@ -17,7 +17,9 @@
     <script>
         function send() {
             let object = {
-                "code": document.getElementById("code_snippet").value
+                "code": document.getElementById("code_snippet").value,
+                "time": document.getElementById("time_restriction").value,
+                "views": document.getElementById("views_restriction").value
             };
 
             let json = JSON.stringify(object);
@@ -38,6 +40,15 @@
 <textarea id="code_snippet" rows="10" cols="100" placeholder="Paste your code snippet here"></textarea>
 <br>
 <br>
+<label>Time restriction: </label>
+<input id="time_restriction" type="text" />
+<br>
+<br>
+<label>Views restriction: </label>
+<input id="views_restriction" type="text" />
+<br>
 <button id="send_snippet" type="submit" onclick="send()">Submit</button>
+<br>
+<br>
 </body>
 </html>

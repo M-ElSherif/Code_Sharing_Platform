@@ -28,6 +28,15 @@
 <body>
 
 <code><span id="load_date">${code.date}</span></code>
+<br>
+<#if code.views gt 0>
+    <span>${code.views} more views allowed</span>
+</#if>
+<br>
+<#if code.time gt 0>
+    <span>The code will be available for ${code.time} seconds</span>
+</#if>
+<br>
 <div class="code_block">
     <pre id="code_snippet"><code>${code.code}</code></pre>
 </div>
