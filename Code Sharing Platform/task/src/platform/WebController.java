@@ -1,7 +1,6 @@
 package platform;
 
 import freemarker.template.Template;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -42,7 +41,6 @@ public class WebController {
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.setContentType(MediaType.TEXT_HTML);
 
-//        Code code = this.storageConfig.getCode(N);
         Optional<Code> code = this.codeService.getCodeById(N);
 
         Map root = new HashMap();
@@ -65,7 +63,6 @@ public class WebController {
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.setContentType(MediaType.TEXT_HTML);
 
-//        List<Code> codeList = this.storageConfig.getCodeLatest();
         List<Code> codeList = this.codeService.getLatestCode();
 
         Map root = new HashMap();
@@ -88,7 +85,7 @@ public class WebController {
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.setContentType(MediaType.TEXT_HTML);
 
-        Map root= new HashMap();
+        Map root = new HashMap();
         Template template = cfg.getTemplate("codeEdit.ftlh");
         StringWriter out = new StringWriter();
         try {
@@ -102,9 +99,8 @@ public class WebController {
     }
 
 
-    @GetMapping(value="/api/code/latest", produces = "application/json")
+    @GetMapping(value = "/api/code/latest", produces = "application/json")
     public ResponseEntity<List<Code>> getCodeLatest() {
-//        List<Code> codeSnippets = this.storageConfig.getCodeLatest();
         List<Code> codeList = this.codeService.getLatestCode();
 
         return ResponseEntity.ok()
@@ -113,21 +109,34 @@ public class WebController {
 
     @GetMapping(value = "/api/code/{N}", produces = "application/json")
     public ResponseEntity<Code> getCodeSnippet(@PathVariable int N) {
-//        Code code = this.storageConfig.getCode(N);
         Optional<Code> code = this.codeService.getCodeById(N);
 
         return ResponseEntity.ok()
                 .body(code.get());
     }
 
+//    @PostMapping(value = "/api/code/new", consumes = "application/json")
+//    public ResponseEntity<String> addCodeSnippet(@RequestBody Code code) {
+//        code.setDate(LocalDateTime.now());
+//        this.codeService.addCode(code);
+//
+//        return ResponseEntity.ok()
+//                .body("{ \"id\": \"" + code.getId() + "\"}");
+//    }
+
     @PostMapping(value = "/api/code/new", consumes = "application/json")
     public ResponseEntity<String> addCodeSnippet(@RequestBody Code code) {
         code.setDate(LocalDateTime.now());
-//        this.storageConfig.addCode(code);
+        if (code.getTime() == 0 || code.getTime() < 0) {
+            code.setTime(0);
+        }
+        if (code.getViews() == 0 || code.getViews() < 0) {
+            code.setViews(0);
+        }
         this.codeService.addCode(code);
 
         return ResponseEntity.ok()
-                .body("{ \"id\": \"" + code.getId() + "\"}");
+                .body("{ \"id\": \"" + code.getUuid().toString() + "\"}");
 
     }
 

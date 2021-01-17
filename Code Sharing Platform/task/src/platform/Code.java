@@ -4,25 +4,32 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 import javax.persistence.*;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
+import java.util.UUID;
 
 @Entity
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Code {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @Column(name="CODEID")
     @JsonIgnore
-    private int id;
+    private UUID uuid;
 
     @Column(nullable = false)
     private String code;
 
     @Column(nullable = false)
     private LocalDateTime date;
+
+    @Column(nullable = false)
+    private int views;
+
+    @Column(nullable = false)
+    private int time;
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
 
@@ -32,6 +39,7 @@ public class Code {
     public Code(String code, LocalDateTime date) {
         this.code = code;
         this.date = LocalDateTime.now().withNano(0);
+        this.uuid = UUID.randomUUID();
     }
 
     public String getCode() {
@@ -50,12 +58,28 @@ public class Code {
         this.date = date;
     }
 
-    public int getId() {
-        return id;
+    public UUID getUuid() {
+        return uuid;
     }
 
-    public void setId(int codeID) {
-        this.id = codeID;
+    public void setUuid(UUID uuid) {
+        this.uuid = uuid;
+    }
+
+    public int getViews() {
+        return views;
+    }
+
+    public void setViews(int views) {
+        this.views = views;
+    }
+
+    public int getTime() {
+        return time;
+    }
+
+    public void setTime(int time) {
+        this.time = time;
     }
 
     @Override

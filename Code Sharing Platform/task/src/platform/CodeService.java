@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class CodeService{
+public class CodeService {
 
     private CodeRepository codeRepository;
 
@@ -18,7 +18,6 @@ public class CodeService{
     }
 
     public List<Code> findAll() {
-
         List<Code> codeList = new ArrayList<>();
         var temp = this.codeRepository.findAll();
 
@@ -46,8 +45,8 @@ public class CodeService{
         this.codeRepository.deleteById(id);
     }
 
-    public int getCodeId(Code code) {
+    public String getCodeId(Code code) {
         Code c = this.codeRepository.findCodeByCode(code);
-        return c.getId();
+        return c.getUuid().toString();
     }
 }
