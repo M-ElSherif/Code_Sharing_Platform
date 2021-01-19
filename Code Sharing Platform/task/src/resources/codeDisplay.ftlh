@@ -29,17 +29,15 @@
 
 <code><span id="load_date">${code.date}</span></code>
 <br>
-<#if code.views gt 0>
-    <span>${code.views} more views allowed</span>
+<#if code.views gte 0 && code.viewRestricted>
+    <span id="views_restriction">${code.views} more views allowed</span>
 </#if>
 <br>
-<#if code.time gt 0>
-    <span>The code will be available for ${code.time} seconds</span>
+<#if code.time gte 0 && code.timeRestricted>
+    <span id="time_restriction">The code will be available for ${code.time} seconds</span>
 </#if>
 <br>
-<div class="code_block">
-    <pre id="code_snippet"><code>${code.code}</code></pre>
-</div>
+<pre id="code_snippet"><code id="code_snippet">${code.code}</code></pre>
 
 </body>
 </html>

@@ -2,12 +2,8 @@ package platform;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -31,22 +27,23 @@ public class CodeService {
         return codeList;
     }
 
-    public Optional<Code> getCodeById(UUID id) {
-        return this.codeRepository.findByUuid(id);
+    public Code getCodeById(UUID id) {
+        Optional<Code> code = this.codeRepository.findByUuid(id);
+        if (code.isPresent()) {
+            if (code.get().isViewRestricted()) {
+                this.decrementCodeView(code.get());
+            }
+            return code.get();
+        }
+        return null;
     }
 
+
     public List<Code> getLatestCode() {
-        List<Code> codeListTemp = new ArrayList<>();
         List<Code> codeListFinal = new ArrayList<>();
 
         var temp = this.codeRepository.findTop10LatestCode();
-        temp.forEach(code -> codeListTemp.add(code));
-
-        codeListTemp.forEach(code -> {
-            if (code.getTime() == 0 && code.getViews() == 0) {
-                codeListFinal.add(code);
-            }
-        });
+        temp.forEach(code -> codeListFinal.add(code));
 
         return codeListFinal;
     }
@@ -54,11 +51,24 @@ public class CodeService {
     public void addCode(Code code) {
         UUID uuid = UUID.randomUUID();
         code.setUuid(uuid);
+        if (code.getTime() == 0 || code.getTime() < 0) {
+            code.setTime(0);
+        }
+        if (code.getViews() == 0 || code.getViews() < 0) {
+            code.setViews(0);
+        }
+        if (code.getViews() > 0) {
+            code.setViewRestricted(true);
+        }
+        if (code.getTime() > 0) {
+            code.setTimeRestricted(true);
+        }
         this.codeRepository.save(code);
     }
 
-    public void deleteCodeById(int id) {
-        this.codeRepository.deleteById(id);
+    @Transactional
+    public void deleteCodeById(UUID uuid) {
+        this.codeRepository.deleteByUuid(uuid);
     }
 
     public String getCodeId(Code code) {
@@ -73,23 +83,36 @@ public class CodeService {
         }
     }
 
-    public void decrementCodeTime(Code code, long remaining) {
-        if (code.getTime() > 0) {
-            code.setTime(remaining);
-            this.codeRepository.save(code);
-        }
-    }
-
     // Support method
-    public boolean isCodeUnRestricted(Code code) {
-        DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-        LocalDateTime timeCreated = LocalDateTime.parse(code.getDate(), FORMATTER);
-        Duration duration = Duration.between(timeCreated, LocalDateTime.now());
-        long seconds = duration.getSeconds();
-
-        this.decrementCodeTime(code, code.getTime() - seconds);
-
-        return seconds < code.getTime() && code.getViews() > 0;
+    public boolean isCodeRestricted(Code code) {
+        Optional<Code> optCode = Optional.ofNullable(code);
+        if (optCode.isPresent()) {
+            if (code.isTimeRestricted() && code.isViewRestricted()) {
+                if (code.getTime() > 0 && code.getViews() > 0) {
+                    return false;
+                } else {
+                    this.deleteCodeById(code.getUuid());
+                    return true;
+                }
+            } else if (code.isTimeRestricted() && !code.isViewRestricted()) {
+                if (code.getTime() > 0) {
+                    return false;
+                } else {
+                    this.deleteCodeById(code.getUuid());
+                    return true;
+                }
+            } else if (code.isViewRestricted() && !code.isTimeRestricted()) {
+                if (code.getViews() > 0) {
+                    return false;
+                } else {
+                    this.deleteCodeById(code.getUuid());
+                    return true;
+                }
+            } else if (!code.isTimeRestricted() && !code.isViewRestricted()){
+                return false;
+            }
+        }
+        return false;
     }
 
 }

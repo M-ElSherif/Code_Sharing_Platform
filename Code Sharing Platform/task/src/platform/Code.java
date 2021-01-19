@@ -15,7 +15,7 @@ import java.util.UUID;
 public class Code {
 
     @Id
-    @Column(name="CODEID")
+    @Column(name = "CODEID")
     @JsonIgnore
     private UUID uuid;
 
@@ -30,6 +30,14 @@ public class Code {
 
     @Column(nullable = false)
     private long time;
+
+    @JsonIgnore
+    @Column(nullable = false)
+    private boolean timeRestricted;
+
+    @JsonIgnore
+    @Column(nullable = false)
+    private boolean viewRestricted;
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
 
@@ -74,11 +82,32 @@ public class Code {
     }
 
     public long getTime() {
-        return time;
+        if (time == 0) {
+            return time;
+        }
+        Duration duration = Duration.between(this.date, LocalDateTime.now());
+        long secondsPassed = duration.getSeconds();
+        return time - secondsPassed;
     }
 
     public void setTime(long time) {
         this.time = time;
+    }
+
+    public boolean isTimeRestricted() {
+        return timeRestricted;
+    }
+
+    public void setTimeRestricted(boolean timeRestricted) {
+        this.timeRestricted = timeRestricted;
+    }
+
+    public boolean isViewRestricted() {
+        return viewRestricted;
+    }
+
+    public void setViewRestricted(boolean viewRestricted) {
+        this.viewRestricted = viewRestricted;
     }
 
     @Override

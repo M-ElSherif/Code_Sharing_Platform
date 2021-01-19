@@ -41,10 +41,14 @@ public class WebController {
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.setContentType(MediaType.TEXT_HTML);
 
-        Optional<Code> code = this.codeService.getCodeById(UUID);
+        Code code = this.codeService.getCodeById(UUID);
+
+        if (code == null || this.codeService.isCodeRestricted(code)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
 
         Map root = new HashMap();
-        root.put("code", code.get());
+        root.put("code", code);
         Template template = cfg.getTemplate("codeDisplay.ftlh");
         StringWriter out = new StringWriter();
 
@@ -109,26 +113,18 @@ public class WebController {
 
     @GetMapping(value = "/api/code/{UUID}", produces = "application/json")
     public ResponseEntity<Code> getCodeSnippet(@PathVariable UUID UUID) {
-        Code code = this.codeService.getCodeById(UUID).get();
+        Code code = this.codeService.getCodeById(UUID);
 
-        this.codeService.decrementCodeView(code);
-
-        if (this.codeService.isCodeUnRestricted(code)) {
-            return ResponseEntity.ok()
-                    .body(code);
+        if (code == null || this.codeService.isCodeRestricted(code)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        return ResponseEntity.ok()
+                .body(code);
     }
 
     @PostMapping(value = "/api/code/new", consumes = "application/json")
     public ResponseEntity<String> addCodeSnippet(@RequestBody Code code) {
         code.setDate(LocalDateTime.now());
-        if (code.getTime() == 0 || code.getTime() < 0) {
-            code.setTime(0);
-        }
-        if (code.getViews() == 0 || code.getViews() < 0) {
-            code.setViews(0);
-        }
         this.codeService.addCode(code);
 
         return ResponseEntity.ok()
